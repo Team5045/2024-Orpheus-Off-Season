@@ -30,20 +30,23 @@ import frc.robot.subsystems.shooter;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
+
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-  private double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
+  private double MaxAngularRate = 1 * Math.PI; 
+  /*
+   *  3/4 of a rotation per second max angular velocity (ORIGINAL AT 1.5 Multiplier)
+   *  New multiplier set at 1 for a slower rotational speed
+   */
+
 
   // /* Setting up bindings for necessary control of the swerve drive platform */
   // private final CommandJoystick joystick1 = new CommandJoystick(1); // My joystick
-  private final CommandXboxController joystick1 = new CommandXboxController(1);
-  private final CommandXboxController joystick2 = new CommandXboxController(0);
+  private final CommandXboxController joystick1 = new CommandXboxController(0);
+  private final CommandXboxController joystick2 = new CommandXboxController(1);
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
   private final shooter m_shooter = new shooter(new TalonFX(50), new TalonFX(51));
-
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -70,10 +73,10 @@ public class RobotContainer {
   private void configureBindings() {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
      drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
-        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick1.getLeftY() * MaxSpeed) // Drive forward with
+        drivetrain.applyRequest(() -> drive.withVelocityX(joystick1.getLeftY() * MaxSpeed) // Drive forward with
                                                                                            // negative Y (forward)
-            .withVelocityY(-joystick1.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(-joystick1.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            .withVelocityY(joystick1.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+            .withRotationalRate(joystick1.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
         ));
 
     if (Utils.isSimulation()) {
