@@ -4,16 +4,25 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.passthrough;
+
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Telemetry;
+import frc.robot.subsystems.shooter;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -28,17 +37,24 @@ public class RobotContainer {
 
   // /* Setting up bindings for necessary control of the swerve drive platform */
   // private final CommandJoystick joystick1 = new CommandJoystick(1); // My joystick
-  private final CommandXboxController joystick1 = new CommandXboxController(0);
-  private final CommandXboxController joystick2 = new CommandXboxController(1);
+  private final CommandXboxController joystick1 = new CommandXboxController(1);
+  private final CommandXboxController joystick2 = new CommandXboxController(0);
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+  private final shooter m_shooter = new shooter(new TalonFX(50), new TalonFX(51));
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  
 
+  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+                                                               // driving in open loop
+  private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final passthrough m_passthrough = new passthrough(new TalonFX(40));
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    
     configureBindings();
   }
 
@@ -64,6 +80,56 @@ public class RobotContainer {
       drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
     drivetrain.registerTelemetry(logger::telemeterize);
+
+    // PASSTHROUGH BINDINGS
+    joystick2.a().onTrue(
+      Commands.runOnce(() -> {
+        m_passthrough.setspeed(0.25);
+      }, m_passthrough)
+    );
+    
+    joystick2.a().onFalse(
+      Commands.runOnce(() -> {
+        m_passthrough.setspeed(0.0);
+      }, m_passthrough)
+    );
+
+    joystick2.b().onTrue(
+      Commands.runOnce(() -> {
+        m_passthrough.setspeed(-0.4);
+      }, m_passthrough)
+    );
+    
+    joystick2.b().onFalse(
+      Commands.runOnce(() -> {
+        m_passthrough.setspeed(0.0);
+      }, m_passthrough)
+    );
+
+    // SHOOTER BINDINGS
+    joystick2.rightTrigger().onTrue(
+      Commands.runOnce(() -> {
+        m_shooter.shootit();
+      }, m_shooter)
+    );
+
+    joystick2.rightTrigger().onFalse(
+      Commands.runOnce(() -> {
+        m_shooter.stop();
+      }, m_shooter)
+    );
+
+    joystick2.leftTrigger().onTrue(
+      Commands.runOnce(() -> {
+        m_shooter.eatit();
+      }, m_shooter)
+    );
+
+    joystick2.leftTrigger().onFalse(
+      Commands.runOnce(() -> {
+        m_shooter.stop();
+      }, m_shooter)
+    );
   }
 
   /**
