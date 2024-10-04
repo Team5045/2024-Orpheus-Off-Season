@@ -33,7 +33,7 @@ import frc.robot.subsystems.shooter;
 
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+  private double MaxSpeed = 2; // kSpeedAt12VoltsMps desired top speed
   private double MaxAngularRate = 1 * Math.PI; 
   /*
    *  3/4 of a rotation per second max angular velocity (ORIGINAL AT 1.5 Multiplier)
@@ -76,7 +76,7 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> drive.withVelocityX(joystick1.getLeftY() * MaxSpeed) // Drive forward with
                                                                                            // negative Y (forward)
             .withVelocityY(joystick1.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(joystick1.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            .withRotationalRate(-joystick1.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
         ));
 
     if (Utils.isSimulation()) {
@@ -85,25 +85,25 @@ public class RobotContainer {
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // PASSTHROUGH BINDINGS
-    joystick2.a().onTrue(
+    joystick2.leftBumper().onTrue(
       Commands.runOnce(() -> {
-        m_passthrough.setspeed(0.25);
+        m_passthrough.setspeed(0.15);
       }, m_passthrough)
     );
     
-    joystick2.a().onFalse(
+    joystick2.leftBumper().onFalse(
       Commands.runOnce(() -> {
         m_passthrough.setspeed(0.0);
       }, m_passthrough)
     );
 
-    joystick2.b().onTrue(
+    joystick2.leftBumper().onTrue(
       Commands.runOnce(() -> {
-        m_passthrough.setspeed(-0.4);
+        m_passthrough.setspeed(-0.15);
       }, m_passthrough)
     );
     
-    joystick2.b().onFalse(
+    joystick2.leftBumper().onFalse(
       Commands.runOnce(() -> {
         m_passthrough.setspeed(0.0);
       }, m_passthrough)
